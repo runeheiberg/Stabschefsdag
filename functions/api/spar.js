@@ -1,5 +1,5 @@
 
-// Spar JS
+
 // Cloudflare Pages Function — proxy til AI-sparringen.
 //
 // PLACERING I REPOET (vigtigt):
