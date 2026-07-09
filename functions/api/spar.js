@@ -1,21 +1,6 @@
 
 
-// Cloudflare Pages Function — proxy til AI-sparringen.
-//
-// PLACERING I REPOET (vigtigt):
-//   Læg denne fil som:  functions/api/spar.js
-//   Mappen "functions" skal ligge i roden af det, Cloudflare udgiver.
-//   Så bliver endpointet automatisk tilgængeligt på:  /api/spar
-//
-// I index.html skal AI_ENDPOINT pege på samme sti:
-//   const AI_ENDPOINT = "/api/spar";
-//
-// NØGLEN: sæt en miljøvariabel i Pages-projektet (Settings →
-//   Environment variables) med navnet præcis ANTHROPIC_API_KEY,
-//   markeret som secret. Kør derefter en ny deployment, så den slår
-//   igennem. Nøglen ligger dermed serverside — aldrig i repoet.
-//
-// Backend og side deler adresse, så der er ingen CORS at sætte op.
+
  
 export async function onRequestPost({ request, env }) {
   if (!env.ANTHROPIC_API_KEY) {
