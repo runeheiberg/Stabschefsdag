@@ -1,0 +1,509 @@
+<!-- AI-forberedelse til stabschefsdagen 28. august.
+     Selvstændig HTML-fil. Ingen data gemmes eller sendes til andre.
+
+     HOSTING PÅ GITHUB PAGES:
+     Læg filen i et repo som index.html og slå Pages til.
+     Alt virker statisk UNDTAGEN "AI-sparring", der kalder en model.
+     I claude.ai kalder feltet AI_ENDPOINT nedenfor modellen uden nøgle.
+     På GitHub Pages skal du sætte AI_ENDPOINT til din egen proxy
+     (fx en Cloudflare Worker, der holder API-nøglen serverside) -
+     nøglen må ALDRIG ligge i denne fil på en offentlig side. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI · forberedelse til stabschefsdagen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#E7E8E1; --surface:#FBFBF9; --ink:#1C1E1A; --muted:#5C615A;
+    --line:#CFD1C7; --line2:#DDDED6;
+    --transform:#B0741F; --transform-soft:#F2E6D2;
+    --efficiency:#33595F; --efficiency-soft:#DCE7E7;
+    --display:'Spectral',Georgia,serif;
+    --body:'IBM Plex Sans',system-ui,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,monospace;
+    --maxw:760px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);
+       font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+  .eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;
+           text-transform:uppercase;color:var(--muted)}
+  h1{font-family:var(--display);font-weight:600;font-size:clamp(30px,6vw,44px);
+     line-height:1.05;letter-spacing:-.01em;margin:.15em 0 .1em}
+  h2{font-family:var(--display);font-weight:600;font-size:clamp(22px,4.5vw,29px);
+     line-height:1.1;letter-spacing:-.01em;margin:0 0 .5em}
+  h3{font-family:var(--body);font-weight:600;font-size:16px;margin:0 0 .25em}
+  p{margin:0 0 .9em}
+  a{color:var(--efficiency)}
+  .lede{font-family:var(--display);font-size:clamp(17px,2.6vw,20px);
+        line-height:1.5;color:#333}
+  header.top{padding:46px 0 20px}
+  .rule{height:6px;display:flex;margin:14px 0 0;border-radius:3px;overflow:hidden}
+  .rule>span{flex:1}
+  .rule .a{background:var(--efficiency)} .rule .b{background:var(--transform)}
+  /* stepper */
+  nav.steps{position:sticky;top:0;z-index:20;background:rgba(231,232,225,.92);
+            backdrop-filter:blur(6px);border-bottom:1px solid var(--line);
+            padding:10px 0}
+  .steps .wrap{display:flex;gap:6px;flex-wrap:wrap}
+  .stepbtn{font-family:var(--mono);font-size:12px;letter-spacing:.02em;
+           border:1px solid var(--line);background:transparent;color:var(--muted);
+           padding:7px 11px;border-radius:999px;cursor:pointer;white-space:nowrap}
+  .stepbtn .n{color:var(--ink);font-weight:500;margin-right:6px}
+  .stepbtn[aria-current="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .stepbtn[aria-current="true"] .n{color:#fff}
+  .stepbtn:focus-visible{outline:2px solid var(--transform);outline-offset:2px}
+  section.step{display:none;padding:34px 0 20px;animation:fade .3s ease}
+  section.step.on{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important}}
+  /* thesis test box */
+  .test{background:var(--surface);border:1px solid var(--line);border-radius:12px;
+        padding:20px 22px;margin:18px 0}
+  .test .q{font-family:var(--display);font-size:20px;line-height:1.35;margin:0}
+  .test .q b{color:var(--transform)} .test .q i{color:var(--efficiency);font-style:normal}
+  .refs{font-size:14px;color:var(--muted);border-top:1px solid var(--line2);
+        margin-top:16px;padding-top:12px}
+  /* attention cards */
+  .cards{display:grid;gap:12px;margin-top:8px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;
+        padding:16px 18px}
+  .card .k{font-family:var(--mono);font-size:11px;letter-spacing:.12em;
+           text-transform:uppercase;color:var(--transform)}
+  .card p{margin:.3em 0 0;font-size:15px;color:#2c2f2b}
+  /* use-case items */
+  .uc{background:var(--surface);border:1px solid var(--line);border-radius:12px;
+      padding:16px 18px 18px;margin-bottom:14px}
+  .uc .hd{display:flex;gap:10px;align-items:baseline}
+  .uc .idx{font-family:var(--mono);font-size:12px;color:var(--muted);flex:none;
+           width:26px}
+  .uc .desc{font-size:14.5px;color:#3a3d38;margin:.35em 0 14px 36px}
+  .ctrl{margin:0 0 14px 36px}
+  .ctrl .lab{display:flex;justify-content:space-between;font-family:var(--mono);
+             font-size:11px;letter-spacing:.03em;color:var(--muted);margin-bottom:5px}
+  .ctrl .lab .l{color:var(--efficiency)} .ctrl .lab .r{color:var(--transform)}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;
+    border-radius:3px;background:linear-gradient(90deg,var(--efficiency-soft),var(--transform-soft));
+    outline:none}
+  input[type=range].plain{background:var(--line2)}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;
+    width:20px;height:20px;border-radius:50%;background:var(--ink);cursor:pointer;
+    border:3px solid var(--surface);box-shadow:0 0 0 1px var(--line)}
+  input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;
+    background:var(--ink);cursor:pointer;border:3px solid var(--surface)}
+  input[type=range]:focus-visible{outline:2px solid var(--transform);outline-offset:4px}
+  .single{font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:5px}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .seg button{font-family:var(--mono);font-size:12px;background:transparent;border:none;
+    color:var(--muted);padding:7px 14px;cursor:pointer;border-right:1px solid var(--line)}
+  .seg button:last-child{border-right:none}
+  .seg button[aria-pressed="true"]{background:var(--ink);color:#fff}
+  /* generic */
+  .btn{font-family:var(--body);font-weight:500;font-size:14.5px;background:var(--ink);
+       color:#fff;border:none;border-radius:9px;padding:11px 18px;cursor:pointer}
+  .btn:disabled{opacity:.5;cursor:default}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+  .btn:focus-visible{outline:2px solid var(--transform);outline-offset:2px}
+  textarea{width:100%;font-family:var(--body);font-size:15px;line-height:1.5;
+    border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--surface);
+    color:var(--ink);resize:vertical;min-height:110px}
+  textarea:focus-visible{outline:2px solid var(--transform);outline-offset:1px}
+  .hint{font-size:13px;color:var(--muted);margin-top:8px}
+  .reply{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--transform);
+    border-radius:10px;padding:16px 18px;margin-top:16px;white-space:pre-wrap;font-size:15px}
+  .reply.err{border-left-color:#9a3b3b}
+  .foot{border-top:1px solid var(--line);margin-top:30px;padding:22px 0 60px;
+        font-size:13px;color:var(--muted)}
+  .navrow{display:flex;justify-content:space-between;margin-top:26px}
+  .summary{margin:12px 0 0 36px;font-size:14px}
+  .summary table{border-collapse:collapse;width:100%}
+  .summary td{border-top:1px solid var(--line2);padding:6px 4px;vertical-align:top}
+  .pill{font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:999px;
+        border:1px solid var(--line)}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:2px 0}
+  /* conversation thread */
+  .thread{margin:16px 0 4px}
+  .msg{border-radius:10px;padding:12px 14px;margin:10px 0;font-size:15px;white-space:pre-wrap}
+  .msg .who{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+            color:var(--muted);margin-bottom:6px}
+  .msg.u{background:var(--efficiency-soft);border:1px solid var(--line)}
+  .msg.a{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--transform)}
+  .msg.err{border-left-color:#9a3b3b}
+  /* report (print only) */
+  #report{display:none}
+  #report h2,#report h3{font-family:var(--display)}
+  #report .meta{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-bottom:18px}
+  #report table{border-collapse:collapse;width:100%;font-size:12.5px;margin:6px 0 20px}
+  #report td,#report th{border-top:1px solid var(--line);padding:6px 6px;text-align:left;vertical-align:top}
+  #report th{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;
+             color:var(--muted);border-top:none}
+  #report .rep-msg{margin:0 0 10px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;
+                   white-space:pre-wrap;font-size:12.5px;line-height:1.5}
+  #report .rep-msg.u{background:#efefe9}
+  /* read more (on page) */
+  .more{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:22px 0 6px}
+  .more h3{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+  .more .grp{font-weight:600;font-size:13.5px;margin:14px 0 4px}
+  .more a{display:block;font-size:14.5px;text-decoration:none;color:var(--ink);
+          border-top:1px solid var(--line2);padding:9px 0}
+  .more a:hover{color:var(--efficiency)}
+  .more a .u{display:block;font-size:12.5px;color:var(--muted);font-weight:400;margin-top:2px}
+  .more a .ttl::after{content:" ↗";color:var(--efficiency);font-size:12px}
+  .more .note{font-size:12.5px;color:var(--muted);font-style:italic;margin:12px 0 0}
+  /* report cover */
+  #report .cover .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;
+                          text-transform:uppercase;color:var(--muted)}
+  #report .cover h1{font-family:var(--display);font-size:27px;margin:.2em 0 .35em}
+  #report .cover .test{border:1px solid var(--line);border-radius:8px;padding:11px 14px;
+                       margin:12px 0;font-family:var(--display);font-size:15px;background:#fff}
+  #report .attn-line{font-size:12.5px;margin:5px 0;line-height:1.5}
+  #report .lm{font-size:12px;margin:4px 0;color:#222}
+  @media print{
+    @page{margin:18mm 16mm}
+    nav.steps,header.top,main>section.step,.foot{display:none !important}
+    body{background:#fff;color:#000}
+    #report{display:block !important}
+    #report .cover{break-after:page}
+    #report .rep-msg,#report tr{break-inside:avoid}
+  }
+</style>
+
+<nav class="steps">
+  <div class="wrap" id="stepnav"></div>
+</nav>
+
+<main>
+  <div class="wrap">
+    <header class="top">
+      <div class="eyebrow">Forberedelse · stabschefsdagen 28. august</div>
+      <h1>Hvad kan vi med AI, som vi ikke kan uden?</h1>
+      <p class="lede">Et refleksionsværktøj før mødet. Du deklarerer ikke din nuværende brug her — det tager vi på dagen. Formålet er at få fælles sprog om forskellen på at effektivisere og at transformere, og at prøve nogle konkrete anvendelser af på din egen virkelighed. Intet gemmes, og intet sendes videre.</p>
+      <div class="rule"><span class="a"></span><span class="b"></span></div>
+    </header>
+  </div>
+
+  <!-- STEP 1 -->
+  <section class="step on" id="s1">
+    <div class="wrap">
+      <div class="eyebrow">01 · Baggrund</div>
+      <h2>To forskellige ambitioner</h2>
+      <p><b>Effektivisering</b> gør en eksisterende opgave hurtigere eller billigere. <b>Transformation</b> ændrer, <em>hvad</em> vi overhovedet kan levere. De to blandes ofte sammen, men fører til vidt forskellige beslutninger.</p>
+      <p>Shoshana Zuboff skelnede allerede i 1988 mellem at <em>automatisere</em> (erstatte menneskelig indsats i en kendt proces) og at <em>informere</em> — at teknologien frembringer ny viden, der gør hidtil usynlige processer synlige og åbner for nye handlinger. Det sidste er transformationen.</p>
+      <p>Produktivitetsparadokset (Brynjolfsson m.fl.; Paul David om elmotoren) siger, at generelle teknologier først giver gevinst, når arbejdet redesignes omkring dem. Bolter man AI på uændrede arbejdsgange, sker der lidt. Og Brynjolfssons «Turing Trap» (2022) advarer mod refleksivt at rette AI mod at erstatte mennesker frem for mod ny kapacitet — netop den mere værdifulde vej.</p>
+
+      <div class="test">
+        <p class="q">Dagens ene test, du kan holde alt op imod:<br>Ændrer det <b>hvad vi kan levere</b> — eller kun <i>hvor hurtigt</i>?</p>
+        <div class="refs">Zuboff, <em>In the Age of the Smart Machine</em> (1988) · Brynjolfsson, «The Turing Trap», <em>Daedalus</em> (2022) · Brynjolfsson, Rock &amp; Syverson om produktivitetsparadokset (NBER, 2017/2019).</div>
+      </div>
+      <p>KU er ikke first-mover i administration. Værd at holde fast i: det handler om lav teknologirisiko — ikke om lav ambition om organisatorisk læring. De to ting er ikke samme akse.</p>
+      <div class="more" id="links"></div>
+      <div class="navrow"><span></span><button class="btn" data-go="s2">Videre → Opmærksomhedspunkter</button></div>
+    </div>
+  </section>
+
+  <!-- STEP 2 -->
+  <section class="step" id="s2">
+    <div class="wrap">
+      <div class="eyebrow">02 · Opmærksomhedspunkter</div>
+      <h2>Seks ting, man altid bør gøre sig</h2>
+      <p>Uanset hvilken anvendelse man overvejer, går de samme spørgsmål igen.</p>
+      <div class="cards" id="attn"></div>
+      <div class="navrow">
+        <button class="btn ghost" data-go="s1">← Tilbage</button>
+        <button class="btn" data-go="s3">Videre → Vurder use cases</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 3 -->
+  <section class="step" id="s3">
+    <div class="wrap">
+      <div class="eyebrow">03 · Vurder use cases</div>
+      <h2>Ti mulige anvendelser</h2>
+      <p>For hver: placér den på skalaen fra effektivisering til transformation, vurdér hvor realistisk den er hos os, og om vi reelt vil bruge den. Der er intet facit — det er din læsning, og den følger med i hovedet ind på dagen.</p>
+      <div id="uclist"></div>
+
+      <h3 style="font-family:var(--display);font-size:20px;margin-top:26px">Din egen</h3>
+      <p style="font-size:14.5px;color:#3a3d38">Er der en anvendelse i din stab, listen ikke rammer? Skriv den her — den kan du tage med i sparringen på næste trin.</p>
+      <textarea id="ownuc" placeholder="Fx: at gøre vores mødereferater og indstillinger søgbare, så vi hurtigt kan svare på hvad vi tidligere har besluttet og hvorfor …"></textarea>
+
+      <div class="navrow">
+        <button class="btn ghost" data-go="s2">← Tilbage</button>
+        <button class="btn" data-go="s4">Videre → AI-sparring</button>
+      </div>
+      <p style="margin-top:22px"><button class="btn ghost" id="sumbtn">Vis mine vurderinger</button></p>
+      <div id="summary"></div>
+    </div>
+  </section>
+
+  <!-- STEP 4 -->
+  <section class="step" id="s4">
+    <div class="wrap">
+      <div class="eyebrow">04 · AI-sparring</div>
+      <h2>Prøv en anvendelse af på en model</h2>
+      <p>Beskriv en use case — en fra listen eller din egen — og lad modellen presse på den: er det reelt transformation eller effektivisering, er det realistisk hos os, og hvad skulle være sandt, før vi kunne bruge den? Du kan svare tilbage og fortsætte samtalen. Modellen er en sparringspartner, ikke en autoritet.</p>
+      <textarea id="sparinput" placeholder="Beskriv anvendelsen: hvad skal den gøre, i hvilken del af staben, og hvad håber du at få ud af den?"></textarea>
+      <p class="hint">Skriv ikke navne eller personoplysninger. Teksten sendes til en sprogmodel for at generere svaret; intet gemmes.</p>
+      <div class="row">
+        <button class="btn" id="sparbtn">Send</button>
+        <button class="btn ghost" id="clearbtn">Ryd samtale</button>
+      </div>
+      <div class="thread" id="thread"></div>
+
+      <h3 style="font-family:var(--display);font-size:20px;margin-top:28px">Saml til PDF</h3>
+      <p style="font-size:14.5px;color:#3a3d38">Saml dine vurderinger, din egen use case og hele sparringen i ét dokument, du kan gemme eller printe. Alt bygges lokalt i browseren — intet sendes.</p>
+      <p><button class="btn" id="pdfbtn">Generér PDF</button></p>
+      <p class="hint">Åbner browserens udskriftsvindue — vælg «Gem som PDF» som destination.</p>
+
+      <div class="navrow">
+        <button class="btn ghost" data-go="s3">← Tilbage</button>
+        <span></span>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap"><div id="report"></div></div>
+
+  <div class="wrap">
+    <div class="foot">
+      Bygget som forberedelse til stabschefsdagen. Ingen svar, vurderinger eller sparringstekster gemmes eller sendes til facilitator — refleksionen er din. Kildehenvisninger er angivet ved baggrundsafsnittet.
+    </div>
+  </div>
+</main>
+
+<script>
+/* ---------- endpoint ----------
+   I claude.ai kaldes modellen uden nøgle via dette endpoint.
+   På GitHub Pages: skift til din egen proxy-URL (Cloudflare Worker el.lign.). */
+const AI_ENDPOINT = "https://api.anthropic.com/v1/messages";
+const MODEL = "claude-sonnet-4-6";
+
+/* ---------- data ---------- */
+const STEPS = [
+  {id:"s1", n:"01", t:"Baggrund"},
+  {id:"s2", n:"02", t:"Opmærksomhedspunkter"},
+  {id:"s3", n:"03", t:"Vurder use cases"},
+  {id:"s4", n:"04", t:"AI-sparring"}
+];
+
+const ATTN = [
+  ["Adaptiv, ikke teknisk","At købe værktøjet er let; at ændre vaner, roller og arbejdsdeling er den svære, adaptive del (Heifetz). Transformation lever eller dør her."],
+  ["Governance og persondata","Hvad må behandles hvor, og hvem har ansvaret for et AI-assisteret output? Afklares før brug — ikke bagefter."],
+  ["Verifikation","Modellen er en udkast- og synteser-motor, ikke en kilde. Alt, der skal stå til troende, verificeres af et menneske."],
+  ["Afkompetencering","Hvad skal medarbejdere fortsat kunne selv? Pas på at yngre ikke mister det håndværk, dømmekraften bygger på."],
+  ["Ulige adoption","Når nogle løber forud og andre ikke, opstår en todelt stab. Fælles løft frem for tilfældig spredning."],
+  ["Leverandørafhængighed","Hvad binder vi os til, og hvor let kan vi skifte? Indlejring i én leverandørs værktøj har en pris på sigt."]
+];
+
+const UCS = [
+  ["Hørings- og interessentsyntese i fuld skala","Fra stikprøve til reelt at inddrage hvert enkelt høringssvar systematisk og sporbart."],
+  ["Løbende omverdens- og policyovervågning","Kontinuerlig scanning af lovgivning, sektornyt og bevillingsopslag, som ingen kan bemande manuelt."],
+  ["Institutionel hukommelse gjort søgbar","«Hvad besluttede vi om X, og hvorfor» besvaret på sekunder oven på egne referater og sager."],
+  ["Skaleret beslutningsstøtte med scenarier","Flere beslutninger får et reelt scenarie- og optionsgrundlag, ikke kun de få flagskibssager."],
+  ["Rød-team på egne udspil","AI som djævelens advokat på indstillinger: svage argumenter, oversete interessenter, juridiske risici."],
+  ["Hurtig evidenssyntese","Grunde policy i en bredde af kilder, der før krævede eksterne konsulenter — analysen kommer hjem i staben."],
+  ["Sprog som ikke-barriere","Oversættelse og registertilpasning i realtid, så sprog ikke længere spærrer for deltagelse i governance."],
+  ["Analyse af egne survey- og APV-data","Det tavse kvalitative signal i fritekstsvar bliver hørt frem for kasseret som for dyrt at kode."],
+  ["Interessent-simulering og beredskab","Gennemspil svære samtaler og reaktioner fra grupper, før et udspil sendes — en øvekapacitet, der ikke fandtes."],
+  ["Lederens egen tænke-partner","Altid tilgængelig sparring til at ramme et problem rigtigt — det kognitive arbejde i ledelse, ikke bare tidsbesparelse."]
+];
+
+/* ---------- state (kun i hukommelse) ---------- */
+const state = { ratings: UCS.map(()=>({spectrum:50, realism:50, use:null})) };
+
+const LINKS = [
+  {group:"Begreberne", items:[
+    {t:"Erik Brynjolfsson: «The Turing Trap» (2022)",
+     d:"Automatisering kontra augmentering — og hvorfor forskellen betyder noget.",
+     u:"https://arxiv.org/abs/2201.04200"},
+    {t:"Brynjolfsson, Rock & Syverson: AI and the Modern Productivity Paradox (NBER, 2017)",
+     d:"Hvorfor gevinsten først kommer, når arbejdet redesignes.",
+     u:"https://www.nber.org/papers/w24001"}
+  ]},
+  {group:"Praksis fra en stabsfunktion", items:[
+    {t:"UK Government: «Consult» (ai.gov.uk)",
+     d:"AI-analyse af tusindvis af høringssvar i en policy-funktion.",
+     u:"https://ai.gov.uk/knowledge-hub/tools/consult/"},
+    {t:"UK Government: AI i den offentlige forvaltning (ai.gov.uk)",
+     d:"Overblik over «Humphrey»-værktøjerne til embedsværket.",
+     u:"https://ai.gov.uk/our-work/government/"}
+  ]}
+];
+
+/* ---------- render nav ---------- */
+const stepnav = document.getElementById("stepnav");
+STEPS.forEach(s=>{
+  const b=document.createElement("button");
+  b.className="stepbtn"; b.dataset.go=s.id;
+  b.innerHTML='<span class="n">'+s.n+'</span>'+s.t;
+  stepnav.appendChild(b);
+});
+function show(id){
+  document.querySelectorAll("section.step").forEach(x=>x.classList.toggle("on",x.id===id));
+  document.querySelectorAll(".stepbtn").forEach(x=>x.setAttribute("aria-current",x.dataset.go===id));
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+document.addEventListener("click",e=>{
+  const g=e.target.closest("[data-go]"); if(g){show(g.dataset.go);}
+});
+
+/* ---------- render attention ---------- */
+const attn=document.getElementById("attn");
+ATTN.forEach(([k,p])=>{
+  const d=document.createElement("div"); d.className="card";
+  d.innerHTML='<div class="k">'+k+'</div><p>'+p+'</p>';
+  attn.appendChild(d);
+});
+
+/* ---------- render read-more links ---------- */
+const linksEl=document.getElementById("links");
+if(linksEl){
+  let h='<h3>Læs mere</h3>';
+  LINKS.forEach(g=>{
+    h+='<div class="grp">'+g.group+'</div>';
+    g.items.forEach(it=>{
+      h+='<a href="'+it.u+'" target="_blank" rel="noopener"><span class="ttl">'+
+         escapeHtml(it.t)+'</span><span class="u">'+escapeHtml(it.d)+'</span></a>';
+    });
+  });
+  h+='<p class="note">Skellet mellem at automatisere og informere stammer fra Shoshana Zuboff, In the Age of the Smart Machine (1988).</p>';
+  linksEl.innerHTML=h;
+}
+
+/* ---------- render use cases ---------- */
+const list=document.getElementById("uclist");
+UCS.forEach(([t,desc],i)=>{
+  const n=String(i+1).padStart(2,"0");
+  const el=document.createElement("div"); el.className="uc";
+  el.innerHTML =
+    '<div class="hd"><div class="idx">'+n+'</div><h3 style="font-family:var(--display);font-size:18px;font-weight:600">'+t+'</h3></div>'+
+    '<div class="desc">'+desc+'</div>'+
+    '<div class="ctrl"><div class="lab"><span class="l">Mest tempo · effektivisering</span><span class="r">Ny kapacitet · transformation</span></div>'+
+      '<input type="range" min="0" max="100" value="50" data-i="'+i+'" data-k="spectrum"></div>'+
+    '<div class="ctrl"><div class="single">Hvor realistisk hos os?  ·  lav → høj</div>'+
+      '<input type="range" class="plain" min="0" max="100" value="50" data-i="'+i+'" data-k="realism"></div>'+
+    '<div class="ctrl"><div class="single">Vil vi reelt bruge den?</div>'+
+      '<div class="seg" data-i="'+i+'">'+
+        '<button data-v="nej">Nej</button><button data-v="maaske">Måske</button><button data-v="ja">Ja</button></div></div>';
+  list.appendChild(el);
+});
+list.addEventListener("input",e=>{
+  const t=e.target; if(t.type==="range"){ state.ratings[+t.dataset.i][t.dataset.k]=+t.value; }
+});
+list.addEventListener("click",e=>{
+  const b=e.target.closest(".seg button"); if(!b) return;
+  const seg=b.parentElement, i=+seg.dataset.i;
+  [...seg.children].forEach(x=>x.setAttribute("aria-pressed", x===b));
+  state.ratings[i].use=b.dataset.v;
+});
+
+/* ---------- summary ---------- */
+document.getElementById("sumbtn").addEventListener("click",()=>{
+  const box=document.getElementById("summary");
+  const useTxt={nej:"Nej",maaske:"Måske",ja:"Ja",null:"—"};
+  let rows="";
+  state.ratings.forEach((r,i)=>{
+    const lean = r.spectrum>=60?"transformation":(r.spectrum<=40?"effektivisering":"midt");
+    rows+='<tr><td style="font-family:var(--mono);color:var(--muted);width:26px">'+String(i+1).padStart(2,"0")+
+      '</td><td>'+UCS[i][0]+'</td>'+
+      '<td style="text-align:right"><span class="pill">'+lean+'</span></td>'+
+      '<td style="text-align:right;font-family:var(--mono);font-size:12px;color:var(--muted)">real '+r.realism+
+      ' · '+useTxt[r.use]+'</td></tr>';
+  });
+  box.innerHTML='<div class="summary"><table>'+rows+'</table></div>';
+});
+
+/* ---------- AI sparring ---------- */
+const SYSTEM =
+  "Du er en skarp, venlig sparringspartner for en dansk universitetsstabschef, der forbereder en drøftelse om AI. "+
+  "Brugeren beskriver en mulig anvendelse af AI i en stabsfunktion. Din opgave er ikke at rose, men at presse konstruktivt. "+
+  "Svar på dansk, kort og i prosa (2-4 korte afsnit, ingen punktopstilling). Gør tre ting: "+
+  "(1) Test om det reelt er transformation (ændrer HVAD staben kan levere) eller blot effektivisering (samme opgave, hurtigere) - og sig hvorfor. "+
+  "(2) Vurder realisme i en centraliseret universitetsadministration, der ikke er first-mover: nævn den vigtigste forudsætning eller barriere (fx persondata, governance, kompetencer, adoption). "+
+  "(3) Slut med ét skarpt spørgsmål, brugeren bør møde op med. Vær konkret, undgå floskler og HR-sprog.";
+
+state.thread=[];   // {role:"user"|"assistant", text, error?, pending?}
+const sparBtn=document.getElementById("sparbtn");
+const sparInput=document.getElementById("sparinput");
+const threadEl=document.getElementById("thread");
+
+function renderThread(){
+  threadEl.innerHTML=state.thread.map(m=>{
+    const cls=m.role==="user"?"u":(m.error?"a err":"a");
+    const who=m.role==="user"?"Mig":"Model";
+    return '<div class="msg '+cls+'"><div class="who">'+who+'</div>'+escapeHtml(m.text)+'</div>';
+  }).join("");
+}
+
+async function send(){
+  const txt=sparInput.value.trim(); if(!txt) return;
+  state.thread.push({role:"user",text:txt});
+  state.thread.push({role:"assistant",text:"…",pending:true});
+  sparInput.value=""; renderThread();
+  sparBtn.disabled=true; const old=sparBtn.textContent; sparBtn.textContent="Tænker …";
+  try{
+    const msgs=state.thread.filter(m=>!m.pending).map(m=>({role:m.role,content:m.text}));
+    const res=await fetch(AI_ENDPOINT,{
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({ model:MODEL, max_tokens:1000, system:SYSTEM, messages:msgs })
+    });
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const data=await res.json();
+    const out=(data.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("\n").trim();
+    state.thread.pop();
+    state.thread.push({role:"assistant",text:out||"Tomt svar. Prøv igen."});
+  }catch(err){
+    state.thread.pop();
+    state.thread.push({role:"assistant",error:true,
+      text:"Kunne ikke hente svar ("+String(err.message)+"). Ligger siden på GitHub Pages, mangler den en proxy til modelkaldet — se kommentaren øverst i filen. Resten af værktøjet virker uafhængigt af dette."});
+  }finally{ sparBtn.disabled=false; sparBtn.textContent=old; renderThread(); }
+}
+sparBtn.addEventListener("click", send);
+document.getElementById("clearbtn").addEventListener("click",()=>{ state.thread=[]; renderThread(); });
+
+/* ---------- PDF / print report ---------- */
+function buildReport(){
+  const useTxt={nej:"Nej",maaske:"Måske",ja:"Ja"};
+  let rows="";
+  state.ratings.forEach((r,i)=>{
+    const lean=r.spectrum>=60?"Transformation":(r.spectrum<=40?"Effektivisering":"Midt");
+    rows+='<tr><td>'+String(i+1).padStart(2,"0")+'</td><td>'+escapeHtml(UCS[i][0])+'</td><td>'+
+      lean+' ('+r.spectrum+')</td><td>'+r.realism+'</td><td>'+(useTxt[r.use]||"—")+'</td></tr>';
+  });
+  const own=(document.getElementById("ownuc").value||"").trim();
+  let thread="";
+  if(state.thread.filter(m=>!m.pending).length){
+    state.thread.filter(m=>!m.pending).forEach(m=>{
+      thread+='<div class="rep-msg '+(m.role==="user"?"u":"")+'"><strong>'+
+        (m.role==="user"?"Mig":"Model")+'</strong>\n'+escapeHtml(m.text)+'</div>';
+    });
+  } else { thread='<p class="meta">Ingen sparring gennemført.</p>'; }
+  const d=new Date().toLocaleDateString("da-DK",{year:"numeric",month:"long",day:"numeric"});
+  const attnList=ATTN.map(([k,p])=>'<div class="attn-line"><strong>'+k+'.</strong> '+p+'</div>').join("");
+  const lm=LINKS.flatMap(g=>g.items).map(it=>
+    '<div class="lm"><strong>'+escapeHtml(it.t)+'</strong> — '+it.u+'</div>').join("")+
+    '<div class="lm">Zuboff, In the Age of the Smart Machine (1988) · automatisere vs. informere.</div>';
+  document.getElementById("report").innerHTML=
+    '<div class="cover">'+
+      '<div class="eyebrow">Stabschefsdagen · 28. august</div>'+
+      '<h1>Hvad kan vi med AI, som vi ikke kan uden?</h1>'+
+      '<p class="meta">Mine noter · genereret '+d+' · til eget brug · intet er delt</p>'+
+      '<p style="font-size:13.5px;max-width:52em">Effektivisering gør en kendt opgave hurtigere. Transformation ændrer, hvad vi overhovedet kan levere. Skellet mellem at automatisere og at informere (Zuboff) og produktivitetsparadokset minder om, at gevinsten først kommer, når arbejdet redesignes omkring teknologien — ikke når værktøjet bolts on.</p>'+
+      '<div class="test">Testen: Ændrer det <strong>hvad vi kan levere</strong> — eller kun <em>hvor hurtigt</em>?</div>'+
+      '<h3 style="font-size:15px;margin-top:16px">Opmærksomhedspunkter</h3>'+attnList+
+    '</div>'+
+    '<h3>Vurdering af use cases</h3>'+
+    '<table><thead><tr><th>#</th><th>Use case</th><th>Læsning</th><th>Realisme</th><th>Bruge?</th></tr></thead><tbody>'+
+      rows+'</tbody></table>'+
+    (own?'<h3>Min egen use case</h3><p style="font-size:12.5px;white-space:pre-wrap">'+escapeHtml(own)+'</p>':'')+
+    '<h3>Sparring</h3>'+thread+
+    '<h3>Læs mere</h3>'+lm;
+}
+document.getElementById("pdfbtn").addEventListener("click",()=>{ buildReport(); window.print(); });
+
+function escapeHtml(s){return String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
+</script>
